@@ -25,6 +25,7 @@ public class Product {
     private Double price;
     private String categoryId;
     private String vendorId;
+    private String vendorName;
     private int stockQuantity;
     private String imageUrl;
     private List<String> reviewIds=new ArrayList<>();

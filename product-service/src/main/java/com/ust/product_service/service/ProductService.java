@@ -1,25 +1,38 @@
 package com.ust.product_service.service;
 
+import com.ust.product_service.dto.Vendor;
 import com.ust.product_service.exceptions.ProductNotFoundException;
+import com.ust.product_service.feign.VendorClient;
+import com.ust.product_service.model.Category;
 import com.ust.product_service.model.Product;
+import com.ust.product_service.repository.CategoryRepository;
 import com.ust.product_service.repository.ProductRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class ProductService {
+    @Autowired
+    private ProductRepository productRepository;
 
-    private final ProductRepository productRepository;
+    @Autowired
+    private  VendorClient vendorClient;
 
-    public ProductService(ProductRepository productRepository) {
-        this.productRepository = productRepository;
-    }
+    @Autowired
+    private CategoryRepository categoryRepository;
 
     public Product createProduct(Product product) {
+        Vendor vendor = vendorClient.getVendorById(product.getVendorId());
+        if (vendor == null) {
+            throw new IllegalArgumentException("Vendor with ID " + product.getVendorId() + " does not exist");
+        }
+
+        String vendorName = (String) vendor.getName();
+        product.setVendorName(vendorName);
+
         if (product.getName() == null || product.getName().isEmpty()) {
             throw new IllegalArgumentException("Product name cannot be null or empty");
         }
@@ -42,24 +55,46 @@ public class ProductService {
         return productRepository.findByName(name);
     }
 
-    public Product updateProduct(String id, Product partialUpdate) {
-        return productRepository.findById(id)
-                .map(existingProduct -> {
-                    if (partialUpdate.getName() != null) {
-                        existingProduct.setName(partialUpdate.getName());
-                    }
-                    if (partialUpdate.getPrice() != null) {
-                        existingProduct.setPrice(partialUpdate.getPrice());
-                    }
-                    return productRepository.save(existingProduct);
-                })
-                .orElseThrow(() -> new ProductNotFoundException("Product not found"));
+    public Product updateProduct(String id, Product productDetails) {
+        Product product = getProductById(id);
+
+        // Fetch vendor details if vendorId is updated
+        if (!product.getVendorId().equals(productDetails.getVendorId())) {
+            Vendor vendor = vendorClient.getVendorById(productDetails.getVendorId());
+            String vendorName = (String) vendor.getName();
+            product.setVendorName(vendorName);
+        }
+
+        product.setName(productDetails.getName());
+        product.setDescription(productDetails.getDescription());
+        product.setPrice(productDetails.getPrice());
+        product.setStockQuantity(productDetails.getStockQuantity());
+        product.setImageUrl(productDetails.getImageUrl());
+        product.setCategoryId(productDetails.getCategoryId());
+
+        Product updatedProduct = productRepository.save(product);
+        updateCategoryWithProduct(updatedProduct.getCategoryId(), updatedProduct.getId());
+        return updatedProduct;
+    }
+
+    private void updateCategoryWithProduct(String categoryId, String productId) {
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new RuntimeException("Category not found"));
+
+        if (category.getProductIds() == null) {
+            category.setProductIds(new ArrayList<>());
+        }
+
+        if (!category.getProductIds().contains(productId)) {
+            category.getProductIds().add(productId);
+            categoryRepository.save(category);
+        }
     }
 
     public void deleteProduct(String id) {
         Product product = productRepository.findById(id)
             .orElseThrow(() -> new ProductNotFoundException("Product with id " + id + " not found"));
-         productRepository.deleteById(id);
+         productRepository.delete(product);
     }
 
     public List<Product> getProductsByCategoryId(String id) {

@@ -1,5 +1,6 @@
 package com.ust.product_service.feign;
 
+import com.ust.product_service.dto.Vendor;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -10,5 +11,5 @@ import java.util.Map;
 public interface VendorClient {
 
     @GetMapping("/{id}")
-    Map<String,Object> getVendorById(@PathVariable("id") String id);
+    Vendor getVendorById(@PathVariable("id") String id);
 }
