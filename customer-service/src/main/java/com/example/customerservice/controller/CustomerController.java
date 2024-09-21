@@ -1,9 +1,12 @@
 package com.example.customerservice.controller;
 
+import com.example.customerservice.Response.LoginResponse;
 import com.example.customerservice.converter.CustomerDtoConverter;
 import com.example.customerservice.dto.CustomerDto;
+import com.example.customerservice.exception.CustomerNotFoundException;
 import com.example.customerservice.model.Customer;
 import com.example.customerservice.service.CustomerService;
+import com.example.customerservice.service.JWTService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,12 +26,34 @@ public class CustomerController {
     @Autowired
     private CustomerDtoConverter converter;
 
-    @PostMapping
-    public ResponseEntity<CustomerDto> saveUser(@Valid @RequestBody CustomerDto dto) {
-        Customer customer = converter.toEntity(dto);
-        customer = customerService.createCustomer(customer);
-        var responseBody = converter.toDto(customer);
-        return ResponseEntity.status(HttpStatus.CREATED).body(responseBody);
+    @Autowired
+    private JWTService jwtService;
+
+//    @PostMapping
+//    public ResponseEntity<CustomerDto> saveUser(@Valid @RequestBody CustomerDto dto) {
+//        Customer customer = converter.toEntity(dto);
+//        customer = customerService.createCustomer(customer);
+//        var responseBody = converter.toDto(customer);
+//        return ResponseEntity.status(HttpStatus.CREATED).body(responseBody);
+//    }
+
+    @PostMapping("/register")
+    public ResponseEntity<Customer> registerCustomer(@RequestBody Customer customer) {
+        Customer registeredCustomer = customerService.registerCustomer(customer);
+        return ResponseEntity.ok(registeredCustomer);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> loginCustomer(@RequestBody Customer customer) {
+        try {
+            Customer loggedInCustomer = customerService.loginCustomer(customer.getEmail(), customer.getPassword());
+            String token = jwtService.generateToken(loggedInCustomer.getName());
+
+            // Return both the user details and the token
+            return ResponseEntity.ok(new LoginResponse(token,loggedInCustomer));
+        } catch (CustomerNotFoundException ex) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
+        }
     }
 
     @GetMapping("/{id}")

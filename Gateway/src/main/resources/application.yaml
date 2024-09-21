@@ -1,0 +1,36 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+        - id: vendor-service
+          uri: http://localhost:8000
+          predicates:
+            - Path=/api/vendors/**
+        - id: product-service
+          uri: http://localhost:8002
+          predicates:
+            - Path=/api/products/**, /api/categories/**, /api/reviews/**
+        - id: order-service
+          uri: http://localhost:8003
+          predicates:
+            - Path=/api/orders/**, /api/order-items/**
+        - id: user-service
+          uri: http://localhost:8001
+          predicates:
+            - Path=/api/users/**
+
+jwt:
+  token:
+    secret: 36F4A8EB4B18CAC332F9DBA5DC1E1775D6EB45BCDD6F9F90B741791B65724758
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true

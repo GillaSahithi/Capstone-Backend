@@ -5,6 +5,7 @@ import com.example.customerservice.feign.OrderClient;
 import com.example.customerservice.model.Customer;
 import com.example.customerservice.repository.CustomerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,16 +18,33 @@ public class CustomerService {
     private CustomerRepository customerRepository;
 
     @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
     private OrderClient orderClient;
 
     public List<Map<String, Object>> getOrdersByCustomerId(String customerId) {
         return orderClient.getOrdersByCustomerId(customerId);
     }
 
-    public Customer createCustomer(Customer customer) {
-        Customer savedCustomer = customerRepository.save(customer);
-        return savedCustomer;
+    public Customer registerCustomer(Customer customer) {
+        // Encrypt the password
+        customer.setPassword(passwordEncoder.encode(customer.getPassword()));
+        return customerRepository.save(customer);
     }
+
+    public Customer loginCustomer(String email, String password) {
+        Customer customer = customerRepository.findByEmail(email);
+        if (customer != null && passwordEncoder.matches(password, customer.getPassword())) {
+            return customer;
+        }
+        throw new CustomerNotFoundException("Invalid email or password");
+    }
+
+//    public Customer createCustomer(Customer customer) {
+//        Customer savedCustomer = customerRepository.save(customer);
+//        return savedCustomer;
+//    }
 
     public Customer getCustomerById(String id) {
         Customer customer = customerRepository.findById(id)

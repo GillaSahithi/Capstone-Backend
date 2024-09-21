@@ -5,6 +5,7 @@ import com.example.vendorservice.feign.ProductServiceClient;
 import com.example.vendorservice.model.Vendor;
 import com.example.vendorservice.repository.VendorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,9 +19,28 @@ public class VendorService {
     @Autowired
     private ProductServiceClient productServiceClient;
 
-    public Vendor createVendor(Vendor vendor) {
-        Vendor savedVendor = vendorRepository.save(vendor);
-        return savedVendor;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+//    public Vendor createVendor(Vendor vendor) {
+//        Vendor savedVendor = vendorRepository.save(vendor);
+//        return savedVendor;
+//    }
+
+    public Vendor registerVendor(Vendor vendor) {
+        vendor.setPassword(passwordEncoder.encode(vendor.getPassword()));
+        return vendorRepository.save(vendor);
+    }
+
+    public Vendor login(String contactMail, String password) {
+        Optional<Vendor> optionalVendor = vendorRepository.findByContactMail(contactMail);
+        if (optionalVendor.isPresent()) {
+            Vendor vendor = optionalVendor.get();
+            if (passwordEncoder.matches(password, vendor.getPassword())) {
+                return vendor;
+            }
+        }
+        return null;
     }
 
     public List<Vendor> getAllVendors() {

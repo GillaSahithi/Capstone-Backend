@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,13 +21,30 @@ import java.util.Optional;
 public class VendorController {
     private final VendorService vendorService;
     private final VendorDtoConverter converter;
+    private final PasswordEncoder passwordEncoder;
 
-    @PostMapping
-    public ResponseEntity<VendorDto> saveVendor(@Valid @RequestBody VendorDto dto) {
-        Vendor vendor = converter.toEntity(dto);
-        vendor = vendorService.createVendor(vendor);
-        var responseBody = converter.toDto(vendor);
-        return ResponseEntity.status(HttpStatus.CREATED).body(responseBody);
+//    @PostMapping
+//    public ResponseEntity<VendorDto> saveVendor(@Valid @RequestBody VendorDto dto) {
+//        Vendor vendor = converter.toEntity(dto);
+//        vendor = vendorService.createVendor(vendor);
+//        var responseBody = converter.toDto(vendor);
+//        return ResponseEntity.status(HttpStatus.CREATED).body(responseBody);
+//    }
+
+    @PostMapping("/register")
+    public ResponseEntity<Vendor> registerVendor(@RequestBody Vendor vendor) {
+        Vendor registeredVendor = vendorService.registerVendor(vendor);
+        return ResponseEntity.ok(registeredVendor);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody Vendor vendor) {
+        Vendor loggedInVendor = vendorService.login(vendor.getContactMail(), vendor.getPassword());
+        if (loggedInVendor != null) {
+            return ResponseEntity.ok(loggedInVendor);
+        } else {
+            return ResponseEntity.status(401).body("Unauthorized: Incorrect contact mail or password");
+        }
     }
 
     @GetMapping

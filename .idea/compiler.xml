@@ -8,8 +8,9 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="VendorService" />
-        <module name="product-service" />
         <module name="CustomerService" />
+        <module name="Gateway" />
+        <module name="product-service" />
         <module name="order-service" />
         <module name="OrderService" />
         <module name="Eureka" />
@@ -20,6 +21,7 @@
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="CustomerService" options="-parameters" />
       <module name="Eureka" options="-parameters" />
+      <module name="Gateway" options="-parameters" />
       <module name="OrderService" options="-parameters" />
       <module name="VendorService" options="-parameters" />
       <module name="order-service" options="-parameters" />
