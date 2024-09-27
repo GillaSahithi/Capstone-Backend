@@ -15,21 +15,13 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 
+@CrossOrigin(origins = "http://localhost:4200")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/vendor")
 public class VendorController {
     private final VendorService vendorService;
     private final VendorDtoConverter converter;
-    private final PasswordEncoder passwordEncoder;
-
-//    @PostMapping
-//    public ResponseEntity<VendorDto> saveVendor(@Valid @RequestBody VendorDto dto) {
-//        Vendor vendor = converter.toEntity(dto);
-//        vendor = vendorService.createVendor(vendor);
-//        var responseBody = converter.toDto(vendor);
-//        return ResponseEntity.status(HttpStatus.CREATED).body(responseBody);
-//    }
 
     @PostMapping("/register")
     public ResponseEntity<Vendor> registerVendor(@RequestBody Vendor vendor) {

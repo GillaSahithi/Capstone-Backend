@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
+@CrossOrigin(origins = "http://localhost:4200")
 @RestController
 @RequestMapping("/api/customer")
 public class CustomerController {
@@ -29,13 +30,6 @@ public class CustomerController {
     @Autowired
     private JWTService jwtService;
 
-//    @PostMapping
-//    public ResponseEntity<CustomerDto> saveUser(@Valid @RequestBody CustomerDto dto) {
-//        Customer customer = converter.toEntity(dto);
-//        customer = customerService.createCustomer(customer);
-//        var responseBody = converter.toDto(customer);
-//        return ResponseEntity.status(HttpStatus.CREATED).body(responseBody);
-//    }
 
     @PostMapping("/register")
     public ResponseEntity<Customer> registerCustomer(@RequestBody Customer customer) {
